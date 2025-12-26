@@ -1,0 +1,432 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>SDXL vs LoRA Comparison</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: #eee;
+    padding: 20px;
+}
+
+h1 { margin-bottom: 20px; }
+
+.toolbar {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.btn {
+    background: #2d7dff;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.row {
+    margin-bottom: 60px;
+    page-break-after: always;
+}
+
+.prompt {
+    font-size: 14px;
+    color: #ccc;
+    margin-bottom: 8px;
+}
+
+.meta {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 12px;
+}
+
+.images {
+    display: flex;
+    gap: 20px;
+}
+
+.images img {
+    max-width: 512px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    cursor: pointer;
+}
+
+/* ---------- LIGHTBOX ---------- */
+.lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.96);
+    z-index: 2000;
+}
+
+.lightbox.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.lightbox-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+}
+
+.lightbox-header {
+    color: #aaa;
+    font-size: 14px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.lightbox-images {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.lightbox-images img {
+    max-height: 90vh;
+    max-width: 95vw;
+    border-radius: 12px;
+    border: 1px solid #333;
+}
+
+/* Elegant close */
+.lightbox-close {
+    position: absolute;
+    top: 18px;
+    right: 22px;
+    width: 36px;
+    height: 36px;
+    font-size: 26px;
+    line-height: 36px;
+    text-align: center;
+    color: #ddd;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.lightbox-close:hover {
+    color: white;
+    transform: rotate(90deg) scale(1.1);
+}
+
+/* ---------- PRINT ---------- */
+@media print {
+    body {
+        background: white;
+        color: black;
+    }
+    .toolbar,
+    .lightbox {
+        display: none !important;
+    }
+}
+</style>
+
+<script>
+window.ALL_COMPARISONS = [];
+
+let currentPair = 0;
+let currentSide = 0; // 0 = SDXL, 1 = LoRA
+
+function openLightbox(index, side) {
+    currentPair = index;
+    currentSide = side;
+    updateLightbox();
+    document.getElementById("lightbox").classList.add("active");
+}
+
+function updateLightbox() {
+    const pair = window.ALL_COMPARISONS[currentPair];
+    const img = currentSide === 0 ? pair.sdxl : pair.lora;
+    document.getElementById("lightboxImage").src = img;
+    document.getElementById("lightboxHeader").innerText =
+        `Prompt ${currentPair + 1} — ${currentSide === 0 ? "SDXL Base" : "LoRA SDXL"}`;
+}
+
+function next() {
+    if (currentSide === 0) {
+        currentSide = 1;
+    } else {
+        currentSide = 0;
+        currentPair = (currentPair + 1) % window.ALL_COMPARISONS.length;
+    }
+    updateLightbox();
+}
+
+function prev() {
+    if (currentSide === 1) {
+        currentSide = 0;
+    } else {
+        currentSide = 1;
+        currentPair = (currentPair - 1 + window.ALL_COMPARISONS.length) % window.ALL_COMPARISONS.length;
+    }
+    updateLightbox();
+}
+
+function closeLightbox() {
+    document.getElementById("lightbox").classList.remove("active");
+}
+
+document.addEventListener("keydown", e => {
+    const lb = document.getElementById("lightbox");
+    if (!lb.classList.contains("active")) return;
+
+    if (e.key === "Escape") closeLightbox();
+    if (e.key === "ArrowRight") next();
+    if (e.key === "ArrowLeft") prev();
+});
+
+function outsideClick(e) {
+    if (e.target.id === "lightbox") closeLightbox();
+}
+
+function exportPDF() {
+    window.print();
+}
+</script>
+</head>
+
+<body>
+
+<div class="toolbar">
+    <button class="btn" onclick="exportPDF()">📄 Export PDF</button>
+</div>
+
+<h1>SDXL Base vs LoRA SDXL Comparison</h1>
+
+<script>
+window.ALL_COMPARISONS.push({
+    sdxl: "train/sdxl/1.png",
+    lora: "train/lora/1.png"
+});
+</script>
+
+<div class="row">
+    <div class="prompt"><b>Prompt:</b> <wmx_web>, e-commerce product page, minimalistic design, light pastel colors, clean grid layout, large product images, modern sans-serif font, clear call-to-action buttons, user-friendly navigation</div>
+    <div class="meta">
+        Seed: 42 | Steps: 20 | CFG: 7.0 | Scheduler: DDIM
+    </div>
+
+    <div class="images">
+        <div>
+            <img src="train/sdxl/1.png" onclick="openLightbox(0, 0)">
+        </div>
+        <div>
+            <img src="train/lora/1.png" onclick="openLightbox(0, 1)">
+        </div>
+    </div>
+</div>
+
+<script>
+window.ALL_COMPARISONS.push({
+    sdxl: "train/sdxl/2.png",
+    lora: "train/lora/2.png"
+});
+</script>
+
+<div class="row">
+    <div class="prompt"><b>Prompt:</b> <wmx_web>, project management dashboard, dark mode UI, navy and teal accents, sidebar navigation, data visualization charts, interactive task cards, smooth hover effects, professional modern font</div>
+    <div class="meta">
+        Seed: 42 | Steps: 20 | CFG: 7.0 | Scheduler: DDIM
+    </div>
+
+    <div class="images">
+        <div>
+            <img src="train/sdxl/2.png" onclick="openLightbox(1, 0)">
+        </div>
+        <div>
+            <img src="train/lora/2.png" onclick="openLightbox(1, 1)">
+        </div>
+    </div>
+</div>
+
+<script>
+window.ALL_COMPARISONS.push({
+    sdxl: "train/sdxl/3.png",
+    lora: "train/lora/3.png"
+});
+</script>
+
+<div class="row">
+    <div class="prompt"><b>Prompt:</b> <wmx_web>, portfolio website, minimalist one-page layout, soft color palette, hero section with centered text, image gallery grid, rounded buttons, simple icons, responsive mobile-friendly design</div>
+    <div class="meta">
+        Seed: 42 | Steps: 20 | CFG: 7.0 | Scheduler: DDIM
+    </div>
+
+    <div class="images">
+        <div>
+            <img src="train/sdxl/3.png" onclick="openLightbox(2, 0)">
+        </div>
+        <div>
+            <img src="train/lora/3.png" onclick="openLightbox(2, 1)">
+        </div>
+    </div>
+</div>
+
+<script>
+window.ALL_COMPARISONS.push({
+    sdxl: "train/sdxl/4.png",
+    lora: "train/lora/4.png"
+});
+</script>
+
+<div class="row">
+    <div class="prompt"><b>Prompt:</b> <wmx_web>, SaaS landing page, clean design, bright accent colors, hero banner with call-to-action, feature sections with cards, testimonial section, sticky header navigation, modern typography</div>
+    <div class="meta">
+        Seed: 42 | Steps: 20 | CFG: 7.0 | Scheduler: DDIM
+    </div>
+
+    <div class="images">
+        <div>
+            <img src="train/sdxl/4.png" onclick="openLightbox(3, 0)">
+        </div>
+        <div>
+            <img src="train/lora/4.png" onclick="openLightbox(3, 1)">
+        </div>
+    </div>
+</div>
+
+<script>
+window.ALL_COMPARISONS.push({
+    sdxl: "train/sdxl/5.png",
+    lora: "train/lora/5.png"
+});
+</script>
+
+<div class="row">
+    <div class="prompt"><b>Prompt:</b> <wmx_web>, mobile app dashboard, light mode, pastel gradients, bottom navigation bar, interactive charts, modular card layout, subtle shadows, smooth transitions, UX-friendly interface</div>
+    <div class="meta">
+        Seed: 42 | Steps: 20 | CFG: 7.0 | Scheduler: DDIM
+    </div>
+
+    <div class="images">
+        <div>
+            <img src="train/sdxl/5.png" onclick="openLightbox(4, 0)">
+        </div>
+        <div>
+            <img src="train/lora/5.png" onclick="openLightbox(4, 1)">
+        </div>
+    </div>
+</div>
+
+<script>
+window.ALL_COMPARISONS.push({
+    sdxl: "train/sdxl/6.png",
+    lora: "train/lora/6.png"
+});
+</script>
+
+<div class="row">
+    <div class="prompt"><b>Prompt:</b> <wmx_web>, blog website, minimalist typography-focused layout, monochrome color palette, sidebar with recent posts, featured images, clean spacing, responsive design, subtle hover animations</div>
+    <div class="meta">
+        Seed: 42 | Steps: 20 | CFG: 7.0 | Scheduler: DDIM
+    </div>
+
+    <div class="images">
+        <div>
+            <img src="train/sdxl/6.png" onclick="openLightbox(5, 0)">
+        </div>
+        <div>
+            <img src="train/lora/6.png" onclick="openLightbox(5, 1)">
+        </div>
+    </div>
+</div>
+
+<script>
+window.ALL_COMPARISONS.push({
+    sdxl: "train/sdxl/7.png",
+    lora: "train/lora/7.png"
+});
+</script>
+
+<div class="row">
+    <div class="prompt"><b>Prompt:</b> <wmx_web>, fintech dashboard, professional dark mode, blue and green accent highlights, data analytics charts, sidebar with collapsible menus, modular widget layout, interactive hover effects, modern sans-serif font</div>
+    <div class="meta">
+        Seed: 42 | Steps: 20 | CFG: 7.0 | Scheduler: DDIM
+    </div>
+
+    <div class="images">
+        <div>
+            <img src="train/sdxl/7.png" onclick="openLightbox(6, 0)">
+        </div>
+        <div>
+            <img src="train/lora/7.png" onclick="openLightbox(6, 1)">
+        </div>
+    </div>
+</div>
+
+<script>
+window.ALL_COMPARISONS.push({
+    sdxl: "train/sdxl/8.png",
+    lora: "train/lora/8.png"
+});
+</script>
+
+<div class="row">
+    <div class="prompt"><b>Prompt:</b> <wmx_web>, admin panel, light UI, clean white and gray theme, top navigation bar, sortable tables, collapsible sidebar, notifications widget, rounded card design, clear call-to-action buttons</div>
+    <div class="meta">
+        Seed: 42 | Steps: 20 | CFG: 7.0 | Scheduler: DDIM
+    </div>
+
+    <div class="images">
+        <div>
+            <img src="train/sdxl/8.png" onclick="openLightbox(7, 0)">
+        </div>
+        <div>
+            <img src="train/lora/8.png" onclick="openLightbox(7, 1)">
+        </div>
+    </div>
+</div>
+
+<script>
+window.ALL_COMPARISONS.push({
+    sdxl: "train/sdxl/9.png",
+    lora: "train/lora/9.png"
+});
+</script>
+
+<div class="row">
+    <div class="prompt"><b>Prompt:</b> <wmx_web>, social media app interface, light and vibrant theme, feed layout with cards, circular profile images, interactive like/share buttons, modern sans-serif font, user-friendly scrollable design, subtle drop shadows</div>
+    <div class="meta">
+        Seed: 42 | Steps: 20 | CFG: 7.0 | Scheduler: DDIM
+    </div>
+
+    <div class="images">
+        <div>
+            <img src="train/sdxl/9.png" onclick="openLightbox(8, 0)">
+        </div>
+        <div>
+            <img src="train/lora/9.png" onclick="openLightbox(8, 1)">
+        </div>
+    </div>
+</div>
+
+<div id="lightbox" class="lightbox" onclick="outsideClick(event)">
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+        <div class="lightbox-close" onclick="closeLightbox()">✕</div>
+        <div class="lightbox-header" id="lightboxHeader"></div>
+        <div class="lightbox-images">
+            <img id="lightboxImage">
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
